@@ -1,0 +1,56 @@
+{
+  "extends": "eslint-config-airbnb",
+  "parser": "babel-eslint",
+  "env": {
+    "browser": true,
+    "mocha": true,
+    "node": true
+  },
+  "globals": {
+    "__data": true,
+    "expect": true,
+    "ga": true,
+    "Intercom": true,
+    "spy": true,
+    "sinon": true,
+    "Raven": true,
+    "Highcharts": true
+  },
+  "rules": {
+    "comma-dangle": 0,
+    "no-wrap-func": 0,
+    "spaced-comment": 0,
+    "eqeqeq": [2, "smart"],
+
+    // Portal uses some camelcase
+    "camelcase": 1,
+
+    // used for creating new Immutable Lists and Maps
+    "new-cap": [1, {"capIsNewExceptions": ["Immutable"]}],
+
+    // Sometimes short variable names are okay
+    "id-length": 0,
+
+    // Doesn't play nice with chai's assertions
+    "no-unused-expressions": 0,
+
+    "react/jsx-uses-react": 2,
+    "react/jsx-uses-vars": 2,
+    "react/react-in-jsx-scope": 2,
+    "react/jsx-no-duplicate-props": 2,
+
+
+    // Discourages microcomponentization
+    "react/no-multi-comp": 0,
+
+    //Temporarirly disabled due to a possible bug in babel-eslint (todomvc example)
+    "block-scoped-var": 0,
+    // Temporarily disabled for test/* until babel/babel-eslint#33 is resolved
+    "padded-blocks": 0,
+
+  },
+  "plugins": [
+    "react",
+    "lean-imports"
+  ]
+}
