@@ -61,7 +61,7 @@ export default class HeatmapLayer extends MapLayer {
     maxZoom: React.PropTypes.number,
     minOpacity: React.PropTypes.number,
     blur: React.PropTypes.number,
-    gradient: React.PropTypes.objectOf(React.PropTypes.number)
+    gradient: React.PropTypes.object
   };
 
   componentDidMount(): void {
@@ -119,8 +119,7 @@ export default class HeatmapLayer extends MapLayer {
       this._heatmap.radius(nextProps.radius);
     }
 
-    if (nextProps.gradient
-      && (!this.props || nextProps.gradient !== this.props.gradient)) {
+    if (nextProps.gradient) {
       this._heatmap.gradient(nextProps.gradient);
     }
 
