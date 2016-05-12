@@ -8,8 +8,15 @@ class MapExample extends React.Component {
 
   state = {
     mapHidden: false,
-    layerHidden: false
+    layerHidden: false,
+    addressPoints: addressPoints
   };
+
+  componentDidMount() {
+    setTimeout(() => {
+      this.setState({ addressPoints: addressPoints.slice(500, 1000) });
+    }, 5000);
+  }
 
   render() {
     if (this.state.mapHidden) {
@@ -30,7 +37,8 @@ class MapExample extends React.Component {
           {!this.state.layerHidden &&
               <HeatmapLayer
               fitBoundsOnLoad
-              points={addressPoints}
+              fitBoundsOnUpdate
+              points={this.state.addressPoints}
               longitudeExtractor={m => m[1]}
               latitudeExtractor={m => m[0]}
               gradient={gradient}

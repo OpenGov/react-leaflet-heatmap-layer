@@ -7,6 +7,7 @@ import pluck from 'lodash.pluck';
 import filter from 'lodash.filter';
 import min from 'lodash.min';
 import max from 'lodash.max';
+import isNumber from 'lodash.isnumber';
 import L from 'leaflet';
 import { MapLayer } from 'react-leaflet';
 import simpleheat from 'simpleheat';
@@ -48,6 +49,26 @@ export type LeafletZoomEvent = {
   center: Object;
 }
 
+function isValidLatLngArray(arr: Array<number>): boolean {
+  return filter(arr, isValid).length === arr.length;
+}
+
+function isInvalidLatLngArray(arr: Array<number>): boolean {
+  return !isValidLatLngArray(arr);
+}
+
+function isInvalid(num: number): boolean {
+  return !isNumber(num) && !num;
+}
+
+function isValid(num: number): boolean {
+  return !isInvalid(num);
+}
+
+function shouldIgnoreLocation(loc: LngLat): boolean {
+  return isInvalid(loc.lng) || isInvalid(loc.lat);
+}
+
 export default class HeatmapLayer extends MapLayer {
   static propTypes = {
     points: React.PropTypes.array.isRequired,
@@ -55,6 +76,7 @@ export default class HeatmapLayer extends MapLayer {
     latitudeExtractor: React.PropTypes.func.isRequired,
     intensityExtractor: React.PropTypes.func.isRequired,
     fitBoundsOnLoad: React.PropTypes.bool,
+    fitBoundsOnUpdate: React.PropTypes.bool,
     /* props controlling heatmap generation */
     max: React.PropTypes.number,
     radius: React.PropTypes.number,
@@ -139,11 +161,19 @@ export default class HeatmapLayer extends MapLayer {
     const lats = map(points, this.props.latitudeExtractor);
     const ne = { lng: max(lngs), lat: max(lats) };
     const sw = { lng: min(lngs), lat: min(lats) };
+
+    if (shouldIgnoreLocation(ne) || shouldIgnoreLocation(sw)) {
+      return;
+    }
+
     this.props.map.fitBounds(L.latLngBounds(L.latLng(sw), L.latLng(ne)));
   }
 
   componentDidUpdate(): void {
     this.props.map.invalidateSize();
+    if (this.props.fitBoundsOnUpdate) {
+      this.fitBounds();
+    }
     this.reset();
   }
 
@@ -240,9 +270,12 @@ export default class HeatmapLayer extends MapLayer {
 
     const accumulateInGrid = (points, leafletMap, bounds) => {
       return reduce(points, (grid, point) => {
-        const p = leafletMap.latLngToContainerPoint([
-          getLat(point), getLng(point)
-        ]);
+        const latLng = [getLat(point), getLng(point)];
+        if (isInvalidLatLngArray(latLng)) { //skip invalid points
+          return grid;
+        }
+
+        const p = leafletMap.latLngToContainerPoint(latLng);
 
         if (!inBounds(p, bounds)) {
           return grid;
