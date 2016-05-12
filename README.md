@@ -21,6 +21,7 @@ class MapExample extends React.Component {
         <Map center={[0,0]} zoom={13}>
           <HeatmapLayer
             fitBoundsOnLoad
+            fitBoundsOnUpdate
             points={addressPoints}
             longitudeExtractor={m => m[1]}
             latitudeExtractor={m => m[0]}
@@ -48,6 +49,7 @@ The `HeatmapLayer` component takes the following props:
 - `latitudeExtractor`: *required* a function that returns the object's latitude e.g. `marker => marker.lat`
 - `intensityExtractor`: *required* a function that returns the object's intensity e.g. `marker => marker.val`
 - `fitBoundsOnLoad`: boolean indicating whether map should fit data in bounds of map on load
+- `fitBoundsOnUpdate`: boolean indicating whether map should fit data in bounds of map on Update
 - `max`: max intensity value for heatmap (default: 3.0)
 - `radius`: radius for heatmap points (default: 30)
 - `maxZoom`: maximum zoom for heatmap (default: 18)
