@@ -77,6 +77,7 @@ export default class HeatmapLayer extends MapLayer {
     intensityExtractor: React.PropTypes.func.isRequired,
     fitBoundsOnLoad: React.PropTypes.bool,
     fitBoundsOnUpdate: React.PropTypes.bool,
+    onStatsUpdate: React.PropTypes.func,
     /* props controlling heatmap generation */
     max: React.PropTypes.number,
     radius: React.PropTypes.number,
@@ -262,7 +263,8 @@ export default class HeatmapLayer extends MapLayer {
           return [
             Math.round(cell[0]),
             Math.round(cell[1]),
-            Math.min(cell[2], maxIntensity)
+            Math.min(cell[2], maxIntensity),
+            cell[3]
           ];
         }).concat(result);
       }, []);
@@ -291,11 +293,12 @@ export default class HeatmapLayer extends MapLayer {
         const k = alt * v;
 
         if (!cell) {
-            grid[y][x] = [p.x, p.y, k];
+            grid[y][x] = [p.x, p.y, k, 1];
         } else {
             cell[0] = (cell[0] * cell[2] + p.x * k) / (cell[2] + k); // x
             cell[1] = (cell[1] * cell[2] + p.y * k) / (cell[2] + k); // y
             cell[2] += k; // accumulated intensity value
+            cell[3] += 1;
         }
 
         return grid;
@@ -321,6 +324,16 @@ export default class HeatmapLayer extends MapLayer {
     this._heatmap.data(data).draw(this.getMinOpacity(this.props));
 
     this._frame = null;
+
+    if (this.props.onStatsUpdate && this.props.points && this.props.points.length > 0) {
+      const stats = _.reduce(data, (stats, point) => {
+        stats.max = point[3] > stats.max ? point[3] : stats.max;
+        stats.min = point[3] < stats.min ? point[3] : stats.min;
+        return stats;
+      }, { min: Infinity, max: -Infinity });
+
+      this.props.onStatsUpdate(stats);
+    }
   }
 
 

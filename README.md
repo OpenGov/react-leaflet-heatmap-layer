@@ -56,6 +56,7 @@ The `HeatmapLayer` component takes the following props:
 - `minOpacity`: minimum opacity for heatmap (default: 0.01)
 - `blur`: blur for heatmap points (default: 15)
 - `gradient`: object defining gradient stop points for heatmap e.g. `{ 0.4: 'blue', 0.8: 'orange', 1.0: 'red' }` (default: `simpleheat` package default gradient)
+- `onStatsUpdate`: called on redraw with a { min, max } object containing the min and max number of items found for a single coordinate
 
 ## Example
 

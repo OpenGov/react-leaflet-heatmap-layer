@@ -1,3 +1,7 @@
+# 0.2.0 Release
+
+- adds an `onStatsUpdate` prop which is called on redraw with a { min, max } object containing the min and max number of items found for a single coordinate
+
 # 0.1.0 Release
 
 - Handle invalid points gracefully
