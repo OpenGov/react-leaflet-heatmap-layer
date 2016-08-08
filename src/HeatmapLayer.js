@@ -110,7 +110,7 @@ export default class HeatmapLayer extends MapLayer {
   }
 
   getMaxZoom(props) {
-    return props.radius || 18;
+    return props.maxZoom || 18;
   }
 
   getMinOpacity(props) {
