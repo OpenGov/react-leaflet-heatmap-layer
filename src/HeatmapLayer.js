@@ -237,7 +237,7 @@ export default class HeatmapLayer extends MapLayer {
 
     const maxZoom = this.props.maxZoom === undefined
                         ? this.props.map.getMaxZoom()
-                        : this.getMax(this.props);
+                        : this.getMaxZoom(this.props);
 
     const v = 1 / Math.pow(
       2,
