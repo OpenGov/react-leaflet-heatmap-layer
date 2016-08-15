@@ -97,7 +97,7 @@ export default class HeatmapLayer extends MapLayer {
     }
 
     this.attachEvents();
-    this.updateHeatmapProps(this.getHeatmapProps());
+    this.updateHeatmapProps(this.getHeatmapProps(this.props));
     this.reset();
   }
 
@@ -121,14 +121,14 @@ export default class HeatmapLayer extends MapLayer {
     return props.blur || 15;
   }
 
-  getHeatmapProps() {
+  getHeatmapProps(props) {
     return {
-      minOpacity: this.getMinOpacity(this.props),
-      maxZoom: this.getMaxZoom(this.props),
-      radius: this.getRadius(this.props),
-      blur: this.getBlur(this.props),
-      max: this.getMax(this.props),
-      gradient: this.props.gradient
+      minOpacity: this.getMinOpacity(props),
+      maxZoom: this.getMaxZoom(props),
+      radius: this.getRadius(props),
+      blur: this.getBlur(props),
+      max: this.getMax(props),
+      gradient: props.gradient
     };
   }
 

@@ -1,3 +1,6 @@
+# 0.2.2 Release
+- Change `getHeatmapProps` signature to take a `props` argument to support passing `nextProps` from `componentWillReceiveProps` and `this.props` from `componentDidMount`
+
 # 0.2.1 Release
 
 - Fix getMaxZoom returning props.radius instead of props.maxZoom, fix misnamed call to getMax instead of getMaxZoom in redraw()
