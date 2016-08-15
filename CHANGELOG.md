@@ -1,3 +1,6 @@
+# 0.2.3 Release
+- Missed Transpilation
+
 # 0.2.2 Release
 - Change `getHeatmapProps` signature to take a `props` argument to support passing `nextProps` from `componentWillReceiveProps` and `this.props` from `componentDidMount`
 
