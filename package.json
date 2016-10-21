@@ -28,10 +28,10 @@
   "author": "Jeremiah Hall <npm@jeremiahrhall.com>",
   "license": "MIT",
   "peerDependencies": {
-    "leaflet": "^0.7.7",
-    "react-leaflet": "^0.10.2",
-    "react": "^0.14.7",
-    "react-dom": "^0.14.7"
+    "leaflet": ">=0.7.7",
+    "react-leaflet": ">=0.10.2",
+    "react": ">=0.14.7",
+    "react-dom": ">=0.14.7"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
