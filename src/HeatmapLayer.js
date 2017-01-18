@@ -1,13 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import map from 'lodash.map';
-import reduce from 'lodash.reduce';
-import forEach from 'lodash.foreach';
-import pluck from 'lodash.pluck';
-import filter from 'lodash.filter';
-import min from 'lodash.min';
-import max from 'lodash.max';
-import isNumber from 'lodash.isnumber';
+import { reduce, filter, min, max, isNumber, map } from 'lodash';
 import L from 'leaflet';
 import { MapLayer } from 'react-leaflet';
 import simpleheat from 'simpleheat';
@@ -26,6 +18,14 @@ export type Bounds = {
   contains: (latLng: LngLat) => boolean;
 }
 
+export type Pane = {
+  appendChild: (element: Object) => void;
+}
+
+export type Panes = {
+  overlayPane: Pane;
+}
+
 export type Map = {
   layerPointToLatLng: (lngLat: Point) => LngLat;
   latLngToLayerPoint: (lngLat: LngLat) => Point;
@@ -34,14 +34,6 @@ export type Map = {
   getPanes: () => Panes;
   invalidateSize: () => void;
   options: Object;
-}
-
-export type Panes = {
-  overlayPane: Pane;
-}
-
-export type Pane = {
-  appendChild: (element: Object) => void;
 }
 
 export type LeafletZoomEvent = {
@@ -84,11 +76,11 @@ export default class HeatmapLayer extends MapLayer {
     maxZoom: React.PropTypes.number,
     minOpacity: React.PropTypes.number,
     blur: React.PropTypes.number,
-    gradient: React.PropTypes.object
+    gradient: React.PropTypes.object,
   };
 
   componentDidMount(): void {
-    this.leafletElement = ReactDOM.findDOMNode(this.refs.container);
+    this.leafletElement = this.container;
     this.props.map.getPanes().overlayPane.appendChild(this.leafletElement);
     this._heatmap = simpleheat(this.leafletElement);
 
@@ -128,7 +120,7 @@ export default class HeatmapLayer extends MapLayer {
       radius: this.getRadius(props),
       blur: this.getBlur(props),
       max: this.getMax(props),
-      gradient: props.gradient
+      gradient: props.gradient,
     };
   }
 
@@ -150,6 +142,10 @@ export default class HeatmapLayer extends MapLayer {
       && (!this.props || nextProps.max !== this.props.max)) {
       this._heatmap.max(nextProps.max);
     }
+  }
+
+  createLeafletElement() {
+    return null;
   }
 
   componentWillUnmount(): void {
@@ -183,11 +179,11 @@ export default class HeatmapLayer extends MapLayer {
   }
 
   attachEvents(): void {
-    const map: Map = this.props.map;
-    map.on('viewreset', () => this.reset());
-    map.on('moveend', () => this.reset());
-    if (map.options.zoomAnimation && L.Browser.any3d) {
-        map.on('zoomanim', this._animateZoom, this);
+    const maps = (Map = this.props.map);
+    maps.on('viewreset', () => this.reset());
+    maps.on('moveend', () => this.reset());
+    if (maps.options.zoomAnimation && L.Browser.any3d) {
+      maps.on('zoomanim', this._animateZoom, this);
     }
   }
 
@@ -195,33 +191,33 @@ export default class HeatmapLayer extends MapLayer {
   _animateZoom(e: LeafletZoomEvent): void {
     const scale = this.props.map.getZoomScale(e.zoom);
     const offset = this.props.map
-                      ._getCenterOffset(e.center)
-                      ._multiplyBy(-scale)
-                      .subtract(this.props.map._getMapPanePos());
+                              ._getCenterOffset(e.center)
+                              ._multiplyBy(-scale)
+                              .subtract(this.props.map._getMapPanePos());
 
     if (L.DomUtil.setTransform) {
-        L.DomUtil.setTransform(this.refs.container, offset, scale);
+      L.DomUtil.setTransform(this.container, offset, scale);
     } else {
-        this.refs.container.style[L.DomUtil.TRANSFORM] =
-          L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ')';
+      this.container.style[L.DomUtil.TRANSFORM] =
+          `${L.DomUtil.getTranslateString(offset)} scale(${scale})`;
     }
   }
 
   reset(): void {
     const topLeft = this.props.map.containerPointToLayerPoint([0, 0]);
-    L.DomUtil.setPosition(this.refs.container, topLeft);
+    L.DomUtil.setPosition(this.container, topLeft);
 
     const size = this.props.map.getSize();
 
     if (this._heatmap._width !== size.x) {
-        this.refs.container.width = this._heatmap._width  = size.x;
+      this.container.width = this._heatmap._width = size.x;
     }
     if (this._heatmap._height !== size.y) {
-        this.refs.container.height = this._heatmap._height = size.y;
+      this.container.height = this._heatmap._height = size.y;
     }
 
     if (this._heatmap && !this._frame && !this.props.map._animating) {
-        this._frame = L.Util.requestAnimFrame(this.redraw, this);
+      this._frame = L.Util.requestAnimFrame(this.redraw, this);
     }
 
     this.redraw();
@@ -239,13 +235,9 @@ export default class HeatmapLayer extends MapLayer {
                         ? this.props.map.getMaxZoom()
                         : this.getMaxZoom(this.props);
 
-    const v = 1 / Math.pow(
-      2,
-      Math.max(0, Math.min(maxZoom - this.props.map.getZoom(), 12))
-    );
+    const v = 1 / Math.max(0, Math.min(maxZoom - this.props.map.getZoom(), 12)) ** 2;
 
     const cellSize = r / 2;
-    const grid = [];
     const panePos = this.props.map._getMapPanePos();
     const offsetX = panePos.x % cellSize;
     const offsetY = panePos.y % cellSize;
@@ -255,92 +247,69 @@ export default class HeatmapLayer extends MapLayer {
 
     const inBounds = (p, bounds) => bounds.contains(p);
 
-    const filterUndefined = (r) => filter(r, c => c !== undefined);
+    const filterUndefined = rUndefined => filter(rUndefined, c => c !== undefined);
 
-    const roundResults = (results) => {
-      return reduce(results, (result, row) => {
-        return map(filterUndefined(row), (cell, key, row) => {
-          return [
-            Math.round(cell[0]),
-            Math.round(cell[1]),
-            Math.min(cell[2], maxIntensity),
-            cell[3]
-          ];
-        }).concat(result);
-      }, []);
-    };
+    const roundResults = results => reduce(results, (result, row) => map(filterUndefined(row), cell => [
+      Math.round(cell[0]),
+      Math.round(cell[1]),
+      Math.min(cell[2], maxIntensity),
+      cell[3],
+    ]).concat(result), []);
 
-    const accumulateInGrid = (points, leafletMap, bounds) => {
-      return reduce(points, (grid, point) => {
-        const latLng = [getLat(point), getLng(point)];
-        if (isInvalidLatLngArray(latLng)) { //skip invalid points
-          return grid;
-        }
-
-        const p = leafletMap.latLngToContainerPoint(latLng);
-
-        if (!inBounds(p, bounds)) {
-          return grid;
-        }
-
-        const x = Math.floor((p.x - offsetX) / cellSize) + 2;
-        const y = Math.floor((p.y - offsetY) / cellSize) + 2;
-
-        grid[y] = grid[y] || [];
-        const cell = grid[y][x];
-
-        const alt = getIntensity(point);
-        const k = alt * v;
-
-        if (!cell) {
-            grid[y][x] = [p.x, p.y, k, 1];
-        } else {
-            cell[0] = (cell[0] * cell[2] + p.x * k) / (cell[2] + k); // x
-            cell[1] = (cell[1] * cell[2] + p.y * k) / (cell[2] + k); // y
-            cell[2] += k; // accumulated intensity value
-            cell[3] += 1;
-        }
-
+    const accumulateInGrid = (points, leafletMap, bounds) => reduce(points, (grid, point) => {
+      const latLng = [getLat(point), getLng(point)];
+      if (isInvalidLatLngArray(latLng)) { // skip invalid points
         return grid;
-      }, []);
-    }
+      }
 
-    const getBounds = (leafletMap) => {
-      return new L.Bounds(L.point([-r, -r]), size.add([r, r]))
-    };
+      const p = leafletMap.latLngToContainerPoint(latLng);
 
-    const getDataForHeatmap = (points, leafletMap) => {
-      return roundResults(
+      if (!inBounds(p, bounds)) {
+        return grid;
+      }
+
+      const x = Math.floor((p.x - offsetX) / cellSize) + 2;
+      const y = Math.floor((p.y - offsetY) / cellSize) + 2;
+
+      grid[y] = grid[y] || [];
+      const cell = grid[y][x];
+
+      const alt = getIntensity(point);
+      const k = alt * v;
+
+      if (!cell) {
+        grid[y][x] = [p.x, p.y, k, 1];
+      } else {
+        cell[0] = (cell[0] * cell[2] + p.x * k) / (cell[2] + k); // x
+        cell[1] = (cell[1] * cell[2] + p.y * k) / (cell[2] + k); // y
+        cell[2] += k; // accumulated intensity value
+        cell[3] += 1;
+      }
+
+      return grid;
+    }, []);
+
+    const getBounds = () => new L.Bounds(L.point([-r, -r]), size.add([r, r]));
+
+    const getDataForHeatmap = (points, leafletMap) => roundResults(
         accumulateInGrid(
           points,
           leafletMap,
-          getBounds(leafletMap)
-        )
+          getBounds(leafletMap),
+        ),
       );
-    }
     const data = getDataForHeatmap(this.props.points, this.props.map);
 
     this._heatmap.clear();
     this._heatmap.data(data).draw(this.getMinOpacity(this.props));
 
     this._frame = null;
-
-    if (this.props.onStatsUpdate && this.props.points && this.props.points.length > 0) {
-      const stats = _.reduce(data, (stats, point) => {
-        stats.max = point[3] > stats.max ? point[3] : stats.max;
-        stats.min = point[3] < stats.min ? point[3] : stats.min;
-        return stats;
-      }, { min: Infinity, max: -Infinity });
-
-      this.props.onStatsUpdate(stats);
-    }
   }
-
 
   render(): React.Element {
     const mapSize = this.props.map.getSize();
     const transformProp = L.DomUtil.testProp(
-      ['transformOrigin', 'WebkitTransformOrigin', 'msTransformOrigin']
+      ['transformOrigin', 'WebkitTransformOrigin', 'msTransformOrigin'],
     );
     const canAnimate = this.props.map.options.zoomAnimation && L.Browser.any3d;
     const zoomClass = `leaflet-zoom-${canAnimate ? 'animated' : 'hide'}`;
@@ -348,14 +317,14 @@ export default class HeatmapLayer extends MapLayer {
     const canvasProps = {
       className: `leaflet-heatmap-layer leaflet-layer ${zoomClass}`,
       style: {
-        [transformProp]: '50% 50%'
+        [transformProp]: '50% 50%',
       },
       width: mapSize.x,
-      height: mapSize.y
+      height: mapSize.y,
     };
 
     return (
-      <canvas ref="container" {...canvasProps} />
+      <canvas ref={ref => this.container = ref} {...canvasProps} />
     );
   }
 
