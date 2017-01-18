@@ -1,3 +1,7 @@
+# 0.2.4 Release
+- Updated the dependencies in the project
+- Update in accordance with the recommendations of eslint
+
 # 0.2.3 Release
 - Missed Transpilation
 
