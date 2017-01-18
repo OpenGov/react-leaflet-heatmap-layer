@@ -93,23 +93,23 @@ export default class HeatmapLayer extends MapLayer {
     this.reset();
   }
 
-  getMax(props) { // eslint-disable-line
+  getMax(props) {
     return props.max || 3.0;
   }
 
-  getRadius(props) { // eslint-disable-line
+  getRadius(props) {
     return props.radius || 30;
   }
 
-  getMaxZoom(props) { // eslint-disable-line
+  getMaxZoom(props) {
     return props.maxZoom || 18;
   }
 
-  getMinOpacity(props) { // eslint-disable-line
+  getMinOpacity(props) {
     return props.minOpacity || 0.01;
   }
 
-  getBlur(props) { // eslint-disable-line
+  getBlur(props) {
     return props.blur || 15;
   }
 
@@ -144,7 +144,7 @@ export default class HeatmapLayer extends MapLayer {
     }
   }
 
-  createLeafletElement() { // eslint-disable-line
+  createLeafletElement() {
     return null;
   }
 
