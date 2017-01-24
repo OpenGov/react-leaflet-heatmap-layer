@@ -87,6 +87,10 @@ export default class HeatmapLayer extends MapLayer {
     gradient: React.PropTypes.object
   };
 
+  createLeafletElement() {
+    return null;
+  }
+
   componentDidMount(): void {
 
     const canAnimate = this.context.map.options.zoomAnimation && L.Browser.any3d;
