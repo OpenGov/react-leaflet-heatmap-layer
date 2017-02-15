@@ -65,6 +65,13 @@ function isValid(num: number): boolean {
   return !isInvalid(num);
 }
 
+function safeRemoveLayer (map, el) {
+  const {overlayPane} = map.getPanes()
+  if (overlayPane.contains(el)) {
+    overlayPane.removeChild(el);
+  }
+}
+
 function shouldIgnoreLocation(loc: LngLat): boolean {
   return isInvalid(loc.lng) || isInvalid(loc.lat);
 }
@@ -125,7 +132,7 @@ export default class HeatmapLayer extends MapLayer {
         return this;
       },
       onRemove: function(map) {
-        map.getPanes().overlayPane.removeChild(el);
+        safeRemoveLayer(map, el)
       }
     });
 
@@ -194,7 +201,7 @@ export default class HeatmapLayer extends MapLayer {
   }
 
   componentWillUnmount(): void {
-    this.context.map.getPanes().overlayPane.removeChild(this._el);
+    safeRemoveLayer(this.context.map, this._el);
   }
 
   fitBounds(): void {
