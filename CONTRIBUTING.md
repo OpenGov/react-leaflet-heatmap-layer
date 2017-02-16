@@ -56,6 +56,7 @@ Before submitting a Pull Request please ensure you have completed the following 
 2. Make sure your copy is up to date: `git pull upstream master`
 3. Run `npm run compile`, to compile your changes to the exported `/lib` code.
 4. Bump the version in `package.json` as appropriate, see `Versioning` in the section below.
+4. Run `npm run lint` to verify code style, all pull requests should have zero lint errors and warnings
 4. Commit your changes
 5. Push your changes to your fork: `your-username/react-leaflet-heatmap-layer`
 6. Open a pull request from your fork to the `upstream` fork (`OpenGov/react-leaflet-heatmap-layer`)
