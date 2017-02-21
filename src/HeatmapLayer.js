@@ -66,7 +66,7 @@ function isValid(num: number): boolean {
 }
 
 function safeRemoveLayer (map, el) {
-  const {overlayPane} = map.getPanes()
+  const {overlayPane} = map.getPanes();
   if (overlayPane.contains(el)) {
     overlayPane.removeChild(el);
   }
@@ -99,7 +99,6 @@ export default class HeatmapLayer extends MapLayer {
   }
 
   componentDidMount(): void {
-
     const canAnimate = this.context.map.options.zoomAnimation && L.Browser.any3d;
     const zoomClass = `leaflet-zoom-${canAnimate ? 'animated' : 'hide'}`;
     const mapSize = this.context.map.getSize();
@@ -132,7 +131,7 @@ export default class HeatmapLayer extends MapLayer {
         return this;
       },
       onRemove: function(map) {
-        safeRemoveLayer(map, el)
+        safeRemoveLayer(map, el);
       }
     });
 
