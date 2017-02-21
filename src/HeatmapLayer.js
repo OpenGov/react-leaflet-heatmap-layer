@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import map from 'lodash.map';
 import reduce from 'lodash.reduce';
 import filter from 'lodash.filter';
@@ -63,8 +62,8 @@ function isInvalidLatLngArray(arr: Array<number>): boolean {
   return !isValidLatLngArray(arr);
 }
 
-function safeRemoveLayer (map, el) {
-  const {overlayPane} = map.getPanes();
+function safeRemoveLayer(leafletMap: Map, el): void {
+  const { overlayPane } = leafletMap.getPanes();
   if (overlayPane.contains(el)) {
     overlayPane.removeChild(el);
   }
@@ -104,36 +103,23 @@ export default class HeatmapLayer extends MapLayer {
       ['transformOrigin', 'WebkitTransformOrigin', 'msTransformOrigin']
     );
 
-    const canvasProps = {
-      className: `leaflet-heatmap-layer leaflet-layer ${zoomClass}`,
-      style: {
-        [transformProp]: '50% 50%'
-      },
-      width: mapSize.x,
-      height: mapSize.y
-    };
-
     this._el = L.DomUtil.create('canvas', zoomClass);
-    this._el.style[transformProp] = '50% 50%'
+    this._el.style[transformProp] = '50% 50%';
     this._el.width = mapSize.x;
     this._el.height = mapSize.y;
 
-    var el = this._el
+    const el = this._el;
 
-    var element = L.Layer.extend({
-      onAdd: function (map) {
-        map.getPanes().overlayPane.appendChild(el);
-      },
-      addTo: function (map) {
-        map.addLayer(this);
+    const Heatmap = L.Layer.extend({
+      onAdd: (leafletMap) => leafletMap.getPanes().overlayPane.appendChild(el),
+      addTo: (leafletMap) => {
+        leafletMap.addLayer(this);
         return this;
       },
-      onRemove: function(map) {
-        safeRemoveLayer(map, el);
-      }
+      onRemove: (leafletMap) => safeRemoveLayer(leafletMap, el)
     });
 
-    this.leafletElement = new element();
+    this.leafletElement = new Heatmap();
     super.componentDidMount();
     this._heatmap = simpleheat(this._el);
     this.reset();
@@ -245,9 +231,9 @@ export default class HeatmapLayer extends MapLayer {
                       .subtract(this.context.map._getMapPanePos());
 
     if (L.DomUtil.setTransform) {
-      L.DomUtil.setTransform(this.refs.container, offset, scale);
+      L.DomUtil.setTransform(this._el, offset, scale);
     } else {
-      this.refs.container.style[L.DomUtil.TRANSFORM] =
+      this._el.style[L.DomUtil.TRANSFORM] =
           `${L.DomUtil.getTranslateString(offset)} scale(${scale})`;
     }
   }
@@ -259,10 +245,10 @@ export default class HeatmapLayer extends MapLayer {
     const size = this.context.map.getSize();
 
     if (this._heatmap._width !== size.x) {
-      this.refs.container.width = this._heatmap._width = size.x;
+      this._el.width = this._heatmap._width = size.x;
     }
     if (this._heatmap._height !== size.y) {
-      this.refs.container.height = this._heatmap._height = size.y;
+      this._el.height = this._heatmap._height = size.y;
     }
 
     if (this._heatmap && !this._frame && !this.props.map._animating) {
