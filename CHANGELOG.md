@@ -1,3 +1,13 @@
+# 1.0.0 Release
+- Leaflet 1.0.0 support
+- React-Leaflet 1.0.0 support
+- List eslint as an explicit devDependency
+- upgrade the eslint related packages
+- fix linting errors using current config
+- Add notes about maintaining absence of lint errors and warnings in Contributing guide
+- This should make it easier to ensure code quality as others contribute in the open
+- Also, drop unused jest and enzyme deps
+
 # 0.2.3 Release
 - Missed Transpilation
 

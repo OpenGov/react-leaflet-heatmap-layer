@@ -1,9 +1,6 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import map from 'lodash.map';
 import reduce from 'lodash.reduce';
-import forEach from 'lodash.foreach';
-import pluck from 'lodash.pluck';
 import filter from 'lodash.filter';
 import min from 'lodash.min';
 import max from 'lodash.max';
@@ -26,6 +23,14 @@ export type Bounds = {
   contains: (latLng: LngLat) => boolean;
 }
 
+export type Pane = {
+  appendChild: (element: Object) => void;
+}
+
+export type Panes = {
+  overlayPane: Pane;
+}
+
 export type Map = {
   layerPointToLatLng: (lngLat: Point) => LngLat;
   latLngToLayerPoint: (lngLat: LngLat) => Point;
@@ -36,25 +41,9 @@ export type Map = {
   options: Object;
 }
 
-export type Panes = {
-  overlayPane: Pane;
-}
-
-export type Pane = {
-  appendChild: (element: Object) => void;
-}
-
 export type LeafletZoomEvent = {
   zoom: number;
   center: Object;
-}
-
-function isValidLatLngArray(arr: Array<number>): boolean {
-  return filter(arr, isValid).length === arr.length;
-}
-
-function isInvalidLatLngArray(arr: Array<number>): boolean {
-  return !isValidLatLngArray(arr);
 }
 
 function isInvalid(num: number): boolean {
@@ -65,8 +54,16 @@ function isValid(num: number): boolean {
   return !isInvalid(num);
 }
 
-function safeRemoveLayer (map, el) {
-  const {overlayPane} = map.getPanes();
+function isValidLatLngArray(arr: Array<number>): boolean {
+  return filter(arr, isValid).length === arr.length;
+}
+
+function isInvalidLatLngArray(arr: Array<number>): boolean {
+  return !isValidLatLngArray(arr);
+}
+
+function safeRemoveLayer(leafletMap: Map, el): void {
+  const { overlayPane } = leafletMap.getPanes();
   if (overlayPane.contains(el)) {
     overlayPane.removeChild(el);
   }
@@ -106,36 +103,23 @@ export default class HeatmapLayer extends MapLayer {
       ['transformOrigin', 'WebkitTransformOrigin', 'msTransformOrigin']
     );
 
-    const canvasProps = {
-      className: `leaflet-heatmap-layer leaflet-layer ${zoomClass}`,
-      style: {
-        [transformProp]: '50% 50%'
-      },
-      width: mapSize.x,
-      height: mapSize.y
-    };
-
     this._el = L.DomUtil.create('canvas', zoomClass);
-    this._el.style[transformProp] = '50% 50%'
+    this._el.style[transformProp] = '50% 50%';
     this._el.width = mapSize.x;
     this._el.height = mapSize.y;
 
-    var el = this._el
+    const el = this._el;
 
-    var element = L.Layer.extend({
-      onAdd: function (map) {
-        map.getPanes().overlayPane.appendChild(el);
-      },
-      addTo: function (map) {
-        map.addLayer(this);
+    const Heatmap = L.Layer.extend({
+      onAdd: (leafletMap) => leafletMap.getPanes().overlayPane.appendChild(el),
+      addTo: (leafletMap) => {
+        leafletMap.addLayer(this);
         return this;
       },
-      onRemove: function(map) {
-        safeRemoveLayer(map, el);
-      }
+      onRemove: (leafletMap) => safeRemoveLayer(leafletMap, el)
     });
 
-    this.leafletElement = new element();
+    this.leafletElement = new Heatmap();
     super.componentDidMount();
     this._heatmap = simpleheat(this._el);
     this.reset();
@@ -230,11 +214,11 @@ export default class HeatmapLayer extends MapLayer {
   }
 
   attachEvents(): void {
-    const map: Map = this.context.map;
-    map.on('viewreset', () => this.reset());
-    map.on('moveend', () => this.reset());
-    if (map.options.zoomAnimation && L.Browser.any3d) {
-        map.on('zoomanim', this._animateZoom, this);
+    const leafletMap: Map = this.props.map;
+    leafletMap.on('viewreset', () => this.reset());
+    leafletMap.on('moveend', () => this.reset());
+    if (leafletMap.options.zoomAnimation && L.Browser.any3d) {
+      leafletMap.on('zoomanim', this._animateZoom, this);
     }
   }
 
@@ -247,10 +231,10 @@ export default class HeatmapLayer extends MapLayer {
                       .subtract(this.context.map._getMapPanePos());
 
     if (L.DomUtil.setTransform) {
-        L.DomUtil.setTransform(this._el, offset, scale);
+      L.DomUtil.setTransform(this._el, offset, scale);
     } else {
-        this._el.style[L.DomUtil.TRANSFORM] =
-          L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ')';
+      this._el.style[L.DomUtil.TRANSFORM] =
+          `${L.DomUtil.getTranslateString(offset)} scale(${scale})`;
     }
   }
 
@@ -261,14 +245,14 @@ export default class HeatmapLayer extends MapLayer {
     const size = this.context.map.getSize();
 
     if (this._heatmap._width !== size.x) {
-        this._el.width = this._heatmap._width  = size.x;
+      this._el.width = this._heatmap._width = size.x;
     }
     if (this._heatmap._height !== size.y) {
-        this._el.height = this._heatmap._height = size.y;
+      this._el.height = this._heatmap._height = size.y;
     }
 
-    if (this._heatmap && !this._frame && !this.context.map._animating) {
-        this._frame = L.Util.requestAnimFrame(this.redraw, this);
+    if (this._heatmap && !this._frame && !this.props.map._animating) {
+      this._frame = L.Util.requestAnimFrame(this.redraw, this);
     }
 
     this.redraw();
@@ -292,8 +276,7 @@ export default class HeatmapLayer extends MapLayer {
     );
 
     const cellSize = r / 2;
-    const grid = [];
-    const panePos = this.context.map._getMapPanePos();
+    const panePos = this.props.map._getMapPanePos();
     const offsetX = panePos.x % cellSize;
     const offsetY = panePos.y % cellSize;
     const getLat = this.props.latitudeExtractor;
@@ -302,70 +285,62 @@ export default class HeatmapLayer extends MapLayer {
 
     const inBounds = (p, bounds) => bounds.contains(p);
 
-    const filterUndefined = (r) => filter(r, c => c !== undefined);
+    const filterUndefined = (row) => filter(row, c => c !== undefined);
 
-    const roundResults = (results) => {
-      return reduce(results, (result, row) => {
-        return map(filterUndefined(row), (cell, key, row) => {
-          return [
-            Math.round(cell[0]),
-            Math.round(cell[1]),
-            Math.min(cell[2], maxIntensity),
-            cell[3]
-          ];
-        }).concat(result);
-      }, []);
-    };
+    const roundResults = (results) => reduce(results, (result, row) =>
+      map(filterUndefined(row), (cell) => [
+        Math.round(cell[0]),
+        Math.round(cell[1]),
+        Math.min(cell[2], maxIntensity),
+        cell[3]
+      ]).concat(result),
+      []
+    );
 
-    const accumulateInGrid = (points, leafletMap, bounds) => {
-      return reduce(points, (grid, point) => {
-        const latLng = [getLat(point), getLng(point)];
-        if (isInvalidLatLngArray(latLng)) { //skip invalid points
-          return grid;
-        }
-
-        const p = leafletMap.latLngToContainerPoint(latLng);
-
-        if (!inBounds(p, bounds)) {
-          return grid;
-        }
-
-        const x = Math.floor((p.x - offsetX) / cellSize) + 2;
-        const y = Math.floor((p.y - offsetY) / cellSize) + 2;
-
-        grid[y] = grid[y] || [];
-        const cell = grid[y][x];
-
-        const alt = getIntensity(point);
-        const k = alt * v;
-
-        if (!cell) {
-            grid[y][x] = [p.x, p.y, k, 1];
-        } else {
-            cell[0] = (cell[0] * cell[2] + p.x * k) / (cell[2] + k); // x
-            cell[1] = (cell[1] * cell[2] + p.y * k) / (cell[2] + k); // y
-            cell[2] += k; // accumulated intensity value
-            cell[3] += 1;
-        }
-
+    const accumulateInGrid = (points, leafletMap, bounds) => reduce(points, (grid, point) => {
+      const latLng = [getLat(point), getLng(point)];
+      if (isInvalidLatLngArray(latLng)) { //skip invalid points
         return grid;
-      }, []);
-    }
+      }
 
-    const getBounds = (leafletMap) => {
-      return new L.Bounds(L.point([-r, -r]), size.add([r, r]))
-    };
+      const p = leafletMap.latLngToContainerPoint(latLng);
 
-    const getDataForHeatmap = (points, leafletMap) => {
-      return roundResults(
+      if (!inBounds(p, bounds)) {
+        return grid;
+      }
+
+      const x = Math.floor((p.x - offsetX) / cellSize) + 2;
+      const y = Math.floor((p.y - offsetY) / cellSize) + 2;
+
+      grid[y] = grid[y] || [];
+      const cell = grid[y][x];
+
+      const alt = getIntensity(point);
+      const k = alt * v;
+
+      if (!cell) {
+        grid[y][x] = [p.x, p.y, k, 1];
+      } else {
+        cell[0] = (cell[0] * cell[2] + p.x * k) / (cell[2] + k); // x
+        cell[1] = (cell[1] * cell[2] + p.y * k) / (cell[2] + k); // y
+        cell[2] += k; // accumulated intensity value
+        cell[3] += 1;
+      }
+
+      return grid;
+    }, []);
+
+    const getBounds = () => new L.Bounds(L.point([-r, -r]), size.add([r, r]));
+
+    const getDataForHeatmap = (points, leafletMap) => roundResults(
         accumulateInGrid(
           points,
           leafletMap,
           getBounds(leafletMap)
         )
       );
-    }
-    const data = getDataForHeatmap(this.props.points, this.context.map);
+
+    const data = getDataForHeatmap(this.props.points, this.props.map);
 
     this._heatmap.clear();
     this._heatmap.data(data).draw(this.getMinOpacity(this.props));
@@ -373,13 +348,13 @@ export default class HeatmapLayer extends MapLayer {
     this._frame = null;
 
     if (this.props.onStatsUpdate && this.props.points && this.props.points.length > 0) {
-      const stats = _.reduce(data, (stats, point) => {
-        stats.max = point[3] > stats.max ? point[3] : stats.max;
-        stats.min = point[3] < stats.min ? point[3] : stats.min;
-        return stats;
-      }, { min: Infinity, max: -Infinity });
-
-      this.props.onStatsUpdate(stats);
+      this.props.onStatsUpdate(
+        reduce(data, (stats, point) => {
+          stats.max = point[3] > stats.max ? point[3] : stats.max;
+          stats.min = point[3] < stats.min ? point[3] : stats.min;
+          return stats;
+        }, { min: Infinity, max: -Infinity })
+      );
     }
   }
 
