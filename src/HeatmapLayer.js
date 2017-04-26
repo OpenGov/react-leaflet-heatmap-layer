@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import map from 'lodash.map';
 import reduce from 'lodash.reduce';
 import filter from 'lodash.filter';
@@ -63,6 +62,13 @@ function isInvalidLatLngArray(arr: Array<number>): boolean {
   return !isValidLatLngArray(arr);
 }
 
+function safeRemoveLayer(leafletMap: Map, el): void {
+  const { overlayPane } = leafletMap.getPanes();
+  if (overlayPane.contains(el)) {
+    overlayPane.removeChild(el);
+  }
+}
+
 function shouldIgnoreLocation(loc: LngLat): boolean {
   return isInvalid(loc.lng) || isInvalid(loc.lat);
 }
@@ -85,10 +91,38 @@ export default class HeatmapLayer extends MapLayer {
     gradient: React.PropTypes.object
   };
 
+  createLeafletElement() {
+    return null;
+  }
+
   componentDidMount(): void {
-    this.leafletElement = ReactDOM.findDOMNode(this.refs.container);
-    this.props.map.getPanes().overlayPane.appendChild(this.leafletElement);
-    this._heatmap = simpleheat(this.leafletElement);
+    const canAnimate = this.context.map.options.zoomAnimation && L.Browser.any3d;
+    const zoomClass = `leaflet-zoom-${canAnimate ? 'animated' : 'hide'}`;
+    const mapSize = this.context.map.getSize();
+    const transformProp = L.DomUtil.testProp(
+      ['transformOrigin', 'WebkitTransformOrigin', 'msTransformOrigin']
+    );
+
+    this._el = L.DomUtil.create('canvas', zoomClass);
+    this._el.style[transformProp] = '50% 50%';
+    this._el.width = mapSize.x;
+    this._el.height = mapSize.y;
+
+    const el = this._el;
+
+    const Heatmap = L.Layer.extend({
+      onAdd: (leafletMap) => leafletMap.getPanes().overlayPane.appendChild(el),
+      addTo: (leafletMap) => {
+        leafletMap.addLayer(this);
+        return this;
+      },
+      onRemove: (leafletMap) => safeRemoveLayer(leafletMap, el)
+    });
+
+    this.leafletElement = new Heatmap();
+    super.componentDidMount();
+    this._heatmap = simpleheat(this._el);
+    this.reset();
 
     if (this.props.fitBoundsOnLoad) {
       this.fitBounds();
@@ -96,7 +130,6 @@ export default class HeatmapLayer extends MapLayer {
 
     this.attachEvents();
     this.updateHeatmapProps(this.getHeatmapProps(this.props));
-    this.reset();
   }
 
   getMax(props) {
@@ -151,7 +184,7 @@ export default class HeatmapLayer extends MapLayer {
   }
 
   componentWillUnmount(): void {
-    this.props.map.getPanes().overlayPane.removeChild(this.leafletElement);
+    safeRemoveLayer(this.context.map, this._el);
   }
 
   fitBounds(): void {
@@ -165,11 +198,11 @@ export default class HeatmapLayer extends MapLayer {
       return;
     }
 
-    this.props.map.fitBounds(L.latLngBounds(L.latLng(sw), L.latLng(ne)));
+    this.context.map.fitBounds(L.latLngBounds(L.latLng(sw), L.latLng(ne)));
   }
 
   componentDidUpdate(): void {
-    this.props.map.invalidateSize();
+    this.context.map.invalidateSize();
     if (this.props.fitBoundsOnUpdate) {
       this.fitBounds();
     }
@@ -181,7 +214,7 @@ export default class HeatmapLayer extends MapLayer {
   }
 
   attachEvents(): void {
-    const leafletMap: Map = this.props.map;
+    const leafletMap: Map = this.context.map;
     leafletMap.on('viewreset', () => this.reset());
     leafletMap.on('moveend', () => this.reset());
     if (leafletMap.options.zoomAnimation && L.Browser.any3d) {
@@ -191,34 +224,34 @@ export default class HeatmapLayer extends MapLayer {
 
 
   _animateZoom(e: LeafletZoomEvent): void {
-    const scale = this.props.map.getZoomScale(e.zoom);
-    const offset = this.props.map
+    const scale = this.context.map.getZoomScale(e.zoom);
+    const offset = this.context.map
                       ._getCenterOffset(e.center)
                       ._multiplyBy(-scale)
-                      .subtract(this.props.map._getMapPanePos());
+                      .subtract(this.context.map._getMapPanePos());
 
     if (L.DomUtil.setTransform) {
-      L.DomUtil.setTransform(this.refs.container, offset, scale);
+      L.DomUtil.setTransform(this._el, offset, scale);
     } else {
-      this.refs.container.style[L.DomUtil.TRANSFORM] =
+      this._el.style[L.DomUtil.TRANSFORM] =
           `${L.DomUtil.getTranslateString(offset)} scale(${scale})`;
     }
   }
 
   reset(): void {
-    const topLeft = this.props.map.containerPointToLayerPoint([0, 0]);
-    L.DomUtil.setPosition(this.refs.container, topLeft);
+    const topLeft = this.context.map.containerPointToLayerPoint([0, 0]);
+    L.DomUtil.setPosition(this._el, topLeft);
 
-    const size = this.props.map.getSize();
+    const size = this.context.map.getSize();
 
     if (this._heatmap._width !== size.x) {
-      this.refs.container.width = this._heatmap._width = size.x;
+      this._el.width = this._heatmap._width = size.x;
     }
     if (this._heatmap._height !== size.y) {
-      this.refs.container.height = this._heatmap._height = size.y;
+      this._el.height = this._heatmap._height = size.y;
     }
 
-    if (this._heatmap && !this._frame && !this.props.map._animating) {
+    if (this._heatmap && !this._frame && !this.context.map._animating) {
       this._frame = L.Util.requestAnimFrame(this.redraw, this);
     }
 
@@ -227,23 +260,23 @@ export default class HeatmapLayer extends MapLayer {
 
   redraw(): void {
     const r = this._heatmap._r;
-    const size = this.props.map.getSize();
+    const size = this.context.map.getSize();
 
     const maxIntensity = this.props.max === undefined
                             ? 1
                             : this.getMax(this.props);
 
     const maxZoom = this.props.maxZoom === undefined
-                        ? this.props.map.getMaxZoom()
+                        ? this.context.map.getMaxZoom()
                         : this.getMaxZoom(this.props);
 
     const v = 1 / Math.pow(
       2,
-      Math.max(0, Math.min(maxZoom - this.props.map.getZoom(), 12))
+      Math.max(0, Math.min(maxZoom - this.context.map.getZoom(), 12))
     );
 
     const cellSize = r / 2;
-    const panePos = this.props.map._getMapPanePos();
+    const panePos = this.context.map._getMapPanePos();
     const offsetX = panePos.x % cellSize;
     const offsetY = panePos.y % cellSize;
     const getLat = this.props.latitudeExtractor;
@@ -306,7 +339,8 @@ export default class HeatmapLayer extends MapLayer {
           getBounds(leafletMap)
         )
       );
-    const data = getDataForHeatmap(this.props.points, this.props.map);
+
+    const data = getDataForHeatmap(this.props.points, this.context.map);
 
     this._heatmap.clear();
     this._heatmap.data(data).draw(this.getMinOpacity(this.props));
@@ -326,25 +360,7 @@ export default class HeatmapLayer extends MapLayer {
 
 
   render(): React.Element {
-    const mapSize = this.props.map.getSize();
-    const transformProp = L.DomUtil.testProp(
-      ['transformOrigin', 'WebkitTransformOrigin', 'msTransformOrigin']
-    );
-    const canAnimate = this.props.map.options.zoomAnimation && L.Browser.any3d;
-    const zoomClass = `leaflet-zoom-${canAnimate ? 'animated' : 'hide'}`;
-
-    const canvasProps = {
-      className: `leaflet-heatmap-layer leaflet-layer ${zoomClass}`,
-      style: {
-        [transformProp]: '50% 50%'
-      },
-      width: mapSize.x,
-      height: mapSize.y
-    };
-
-    return (
-      <canvas ref="container" {...canvasProps} />
-    );
+    return null;
   }
 
 }

@@ -1,4 +1,6 @@
-# 0.2.4 Release
+# 1.0.0 Release
+- Leaflet 1.0.0 support
+- React-Leaflet 1.0.0 support
 - List eslint as an explicit devDependency
 - upgrade the eslint related packages
 - fix linting errors using current config
