@@ -1,3 +1,7 @@
+# 1.1.0 Release
+- Apply radius, blur, max for the first render
+- Rerender heatmap when radius, blur or max changed
+
 # 1.0.0 Release
 - Leaflet 1.0.0 support
 - React-Leaflet 1.0.0 support
