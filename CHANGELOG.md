@@ -1,3 +1,6 @@
+# 1.0.1 Release
+- Fixed warning "Accessing PropTypes via the main React package is deprecated"
+
 # 1.0.0 Release
 - Leaflet 1.0.0 support
 - React-Leaflet 1.0.0 support

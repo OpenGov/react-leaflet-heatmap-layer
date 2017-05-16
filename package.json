@@ -1,6 +1,6 @@
 {
   "name": "react-leaflet-heatmap-layer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A custom layer for heatmaps in react-leaflet",
   "main": "lib/HeatmapLayer.js",
   "scripts": {
@@ -69,6 +69,7 @@
     "lodash.min": "^4.0.0",
     "lodash.pluck": "^3.1.2",
     "lodash.reduce": "^4.3.0",
+    "prop-types": "^15.5.10",
     "simpleheat": "^0.4.0"
   }
 }
