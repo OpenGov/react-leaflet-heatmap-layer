@@ -64,7 +64,7 @@ function isInvalidLatLngArray(arr: Array<number>): boolean {
 
 function safeRemoveLayer(leafletMap: Map, el): void {
   const { overlayPane } = leafletMap.getPanes();
-  if (overlayPane.contains(el)) {
+  if (overlayPane && overlayPane.contains(el)) {
     overlayPane.removeChild(el);
   }
 }
