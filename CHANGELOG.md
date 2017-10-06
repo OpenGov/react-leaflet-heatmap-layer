@@ -1,3 +1,6 @@
+# 1.0.1 Release
+- Fix bug in componentWillUnmount->safeRemoveLayer where getPanes doesn't return anything so .contains is called on undefined. 
+
 # 1.0.0 Release
 - Leaflet 1.0.0 support
 - React-Leaflet 1.0.0 support
