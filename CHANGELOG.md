@@ -1,4 +1,5 @@
 # 1.0.1 Release
+- Fix bug in componentWillUnmount->safeRemoveLayer where getPanes doesn't return anything so .contains is called on undefined. 
 - Fixed warning "Accessing PropTypes via the main React package is deprecated"
 
 # 1.0.0 Release
