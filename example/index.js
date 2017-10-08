@@ -9,14 +9,11 @@ class MapExample extends React.Component {
   state = {
     mapHidden: false,
     layerHidden: false,
-    addressPoints
+    addressPoints,
+    radius: 4,
+    blur: 8,
+    max: 0.5
   };
-
-  componentDidMount() {
-    setTimeout(() => {
-      this.setState({ addressPoints: addressPoints.slice(500, 1000) });
-    }, 5000);
-  }
 
   render() {
     if (this.state.mapHidden) {
@@ -48,6 +45,9 @@ class MapExample extends React.Component {
                 latitudeExtractor={m => m[0]}
                 gradient={gradient}
                 intensityExtractor={m => parseFloat(m[2])}
+                radius={Number(this.state.radius)}
+                blur={Number(this.state.blur)}
+                max={Number.parseFloat(this.state.max)}
               />
             }
           <TileLayer
@@ -65,6 +65,40 @@ class MapExample extends React.Component {
           value="Toggle Layer"
           onClick={() => this.setState({ layerHidden: !this.state.layerHidden })}
         />
+
+        <div>
+          Radius
+          <input
+            type="range"
+            min={1}
+            max={40}
+            value={this.state.radius}
+            onChange={(e) => this.setState({ radius: e.currentTarget.value })}
+          /> {this.state.radius}
+        </div>
+
+        <div>
+          Blur
+          <input
+            type="range"
+            min={1}
+            max={20}
+            value={this.state.blur}
+            onChange={(e) => this.setState({ blur: e.currentTarget.value })}
+          /> {this.state.blur}
+        </div>
+
+        <div>
+          Max
+          <input
+            type="range"
+            min={0.1}
+            max={3}
+            step={0.1}
+            value={this.state.max}
+            onChange={(e) => this.setState({ max: e.currentTarget.value })}
+          /> {this.state.max}
+        </div>
       </div>
     );
   }

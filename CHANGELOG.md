@@ -1,3 +1,6 @@
+# 1.0.2 Release
+- Fix bug where radius, blur, and max were not being used when passed in as props.
+
 # 1.0.1 Release
 - Fix bug in componentWillUnmount->safeRemoveLayer where getPanes doesn't return anything so .contains is called on undefined. 
 
