@@ -12,8 +12,20 @@ class MapExample extends React.Component {
     addressPoints,
     radius: 4,
     blur: 8,
-    max: 0.5
+    max: 0.5,
+    limitAddressPoints: true,
   };
+
+  /**
+   * Toggle limiting the address points to test behavior with refocusing/zooming when data points change
+   */
+  toggleLimitedAddressPoints() {
+    if (this.state.limitAddressPoints) {
+      this.setState({ addressPoints: addressPoints.slice(500, 1000), limitAddressPoints: false });
+    } else {
+      this.setState({ addressPoints, limitAddressPoints: true });
+    }
+  }
 
   render() {
     if (this.state.mapHidden) {
@@ -64,6 +76,11 @@ class MapExample extends React.Component {
           type="button"
           value="Toggle Layer"
           onClick={() => this.setState({ layerHidden: !this.state.layerHidden })}
+        />
+        <input
+          type="button"
+          value="Toggle Limited Data"
+          onClick={this.toggleLimitedAddressPoints.bind(this)}
         />
 
         <div>
