@@ -168,9 +168,18 @@ export default class HeatmapLayer extends MapLayer {
   }
 
   updateHeatmapProps(nextProps: Object) {
-    if (nextProps.radius
-      && (!this.props || nextProps.radius !== this.props.radius)) {
-      this._heatmap.radius(nextProps.radius);
+    const shouldUpdateRadius = (nextProps.radius) && (!this.props || nextProps.radius !== this.props.radius);
+    const shouldUpdateBlur = (nextProps.blur) && (!this.props || nextProps.blur !== this.props.blur);
+
+    if (shouldUpdateRadius && shouldUpdateBlur) {
+        this._heatmap.radius(nextProps.radius, nextProps.blur);
+    } else {
+      if (shouldUpdateRadius) {
+        this._heatmap.radius(nextProps.radius, this.props.radius);
+      }
+      if (shouldUpdateBlur) {
+        this._heatmap.radius(this.props.radius, nextProps.blur);
+      }
     }
 
     if (nextProps.gradient) {
