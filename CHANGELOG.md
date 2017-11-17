@@ -1,3 +1,6 @@
+# 1.0.3 Release
+- Fixed warning "Accessing PropTypes via the main React package is deprecated"
+
 # 1.0.2 Release
 - Fix bug where radius, blur, and max were not being used when passed in as props.
 
