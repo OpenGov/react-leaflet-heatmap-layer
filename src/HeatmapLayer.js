@@ -128,7 +128,6 @@ export default class HeatmapLayer extends MapLayer {
     if (this.props.fitBoundsOnLoad) {
       this.fitBounds();
     }
-
     this.attachEvents();
     this.updateHeatmapProps(this.getHeatmapProps(this.props));
   }
@@ -165,22 +164,57 @@ export default class HeatmapLayer extends MapLayer {
   }
 
   componentWillReceiveProps(nextProps: Object): void {
-    this.updateHeatmapProps(this.getHeatmapProps(nextProps));
+    const currentProps = this.props;
+    const nextHeatmapProps = this.getHeatmapProps(nextProps);
+
+    this.updateHeatmapGradient(nextHeatmapProps.gradient);
+
+    const hasRadiusUpdated = nextHeatmapProps.radius !== currentProps.radius;
+    const hasBlurUpdated = nextHeatmapProps.blur !== currentProps.blur;
+
+    if (hasRadiusUpdated || hasBlurUpdated) {
+      this.updateHeatmapRadius(nextHeatmapProps.radius, nextHeatmapProps.blur);
+    }
+
+    if (nextHeatmapProps.max !== currentProps.max) {
+      this.updateHeatmapMax(nextHeatmapProps.max);
+    }
+
   }
 
-  updateHeatmapProps(nextProps: Object) {
-    if (nextProps.radius
-      && (!this.props || nextProps.radius !== this.props.radius)) {
-      this._heatmap.radius(nextProps.radius);
-    }
+  /**
+   * Update various heatmap properties like radius, gradient, and max
+   */
+  updateHeatmapProps(props: Object) {
+    this.updateHeatmapRadius(props.radius, props.blur);
+    this.updateHeatmapGradient(props.gradient);
+    this.updateHeatmapMax(props.max);
+  }
 
-    if (nextProps.gradient) {
-      this._heatmap.gradient(nextProps.gradient);
+  /**
+   * Update the heatmap's radius and blur (blur is optional)
+   */
+  updateHeatmapRadius(radius: number, blur: ?number): void {
+    if (radius) {
+      this._heatmap.radius(radius, blur);
     }
+  }
 
-    if (nextProps.max
-      && (!this.props || nextProps.max !== this.props.max)) {
-      this._heatmap.max(nextProps.max);
+  /**
+   * Update the heatmap's gradient
+   */
+  updateHeatmapGradient(gradient: Object): void {
+    if (gradient) {
+      this._heatmap.gradient(gradient);
+    }
+  }
+
+  /**
+   * Update the heatmap's maximum
+   */
+  updateHeatmapMax(maximum: number): void {
+    if (maximum) {
+      this._heatmap.max(maximum);
     }
   }
 
