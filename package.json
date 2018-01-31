@@ -31,8 +31,8 @@
   "peerDependencies": {
     "leaflet": "^1.0.0",
     "react-leaflet": "^1.0.0",
-    "react": "^15.4.1",
-    "react-dom": "^15.4.1"
+    "react": "^15.4.1 || ^16.0.0",
+    "react-dom": "^15.4.1 || ^16.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
