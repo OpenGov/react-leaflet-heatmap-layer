@@ -14,6 +14,7 @@ import { render } from 'react-dom';
 import { Map, Marker, Popup, TileLayer } from 'react-leaflet';
 import HeatmapLayer from '../src/HeatmapLayer';
 import { addressPoints } from './realworld.10000.js';
+import 'leaflet/dist/leaflet.css' // leaflet.css is usually imported at the top-level index.js. Only needs to be done once
 
 class MapExample extends React.Component {
 
