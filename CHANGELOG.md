@@ -1,3 +1,6 @@
+# 1.0.4 Release
+- Documentation: Set height and width on <Map/> component to prevent getImageData error
+
 # 1.0.3 Release
 - Fixed warning "Accessing PropTypes via the main React package is deprecated"
 
@@ -5,7 +8,7 @@
 - Fix bug where radius, blur, and max were not being used when passed in as props.
 
 # 1.0.1 Release
-- Fix bug in componentWillUnmount->safeRemoveLayer where getPanes doesn't return anything so .contains is called on undefined. 
+- Fix bug in componentWillUnmount->safeRemoveLayer where getPanes doesn't return anything so .contains is called on undefined.
 
 # 1.0.0 Release
 - Leaflet 1.0.0 support
