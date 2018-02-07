@@ -20,7 +20,7 @@ class MapExample extends React.Component {
   render() {
     return (
       <div>
-        <Map center={[0,0]} zoom={13}>
+        <Map center={[0,0]} zoom={13} style={{width: 500, height: 500}}>
           <HeatmapLayer
             fitBoundsOnLoad
             fitBoundsOnUpdate
