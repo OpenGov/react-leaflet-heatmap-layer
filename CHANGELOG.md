@@ -1,3 +1,6 @@
+# 1.0.4 Release
+- Allow the latest versions of `react` and `react-dom` (i.e. 16 and up).
+
 # 1.0.3 Release
 - Fixed warning "Accessing PropTypes via the main React package is deprecated"
 
