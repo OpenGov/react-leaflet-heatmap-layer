@@ -1,6 +1,6 @@
 {
   "name": "react-leaflet-heatmap-layer",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A custom layer for heatmaps in react-leaflet",
   "main": "lib/HeatmapLayer.js",
   "scripts": {
@@ -31,8 +31,7 @@
   "peerDependencies": {
     "leaflet": "^1.0.0",
     "react-leaflet": "^1.0.0",
-    "react": "^15.4.1",
-    "react-dom": "^15.4.1"
+    "react": "^15.4.1 || ^16.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
@@ -53,9 +52,9 @@
     "eslint-plugin-react": "^4.2.3",
     "leaflet": "^1.0.0",
     "prop-types": "^15.5.10",
-    "react": "^15.4.1",
+    "react": "^16.0.0",
     "react-addons-test-utils": "^0.14.7",
-    "react-dom": "^15.4.1",
+    "react-dom": "^16.0.0",
     "react-leaflet": "^1.0.0",
     "react-transform-hmr": "^1.0.4",
     "webpack": "^1.12.14",
