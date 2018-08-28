@@ -1,3 +1,6 @@
+# 1.0.5 Release
+- Fixed scaling of heatmap.
+
 # 1.0.4 Release
 - Allow the latest versions of `react` and `react-dom` (i.e. 16 and up).
 
