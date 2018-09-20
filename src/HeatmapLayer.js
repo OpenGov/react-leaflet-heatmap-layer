@@ -307,7 +307,7 @@ export default withLeaflet(class HeatmapLayer extends MapLayer {
 
     const v = 1 / Math.pow(
       2,
-      Math.max(0, Math.min(maxZoom - this.props.leaflet.map.getZoom(), 12))
+      Math.max(0, Math.min(maxZoom - this.props.leaflet.map.getZoom(), 12)) / 2
     );
 
     const cellSize = r / 2;
