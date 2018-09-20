@@ -1,3 +1,6 @@
+# 2.0.0 Release
+- React-leaflet v2.x support. For react-leaflet v1.x please use react-leaflet-heatmep-layer v1.x.
+
 # 1.0.4 Release
 - Allow the latest versions of `react` and `react-dom` (i.e. 16 and up).
 
