@@ -121,7 +121,9 @@ The `HeatmapLayer` component takes the following props:
 
 ## Example
 
-To try the example:
+You can play with [this code-sandbox example](https://codesandbox.io/s/3yw7rp9r55)
+
+Or you can download and run the example:
 
 1. Clone this repository
 2. run `npm install` in the root of your cloned repository
