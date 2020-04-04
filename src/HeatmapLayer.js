@@ -294,6 +294,12 @@ export default withLeaflet(class HeatmapLayer extends MapLayer {
   }
 
   redraw(): void {
+    // It's possible that the map has unmounted while we've waited for an animation frame, so we
+    // need to check that it still exists before proceeding with the redraw.
+    if (!this.props.leaflet.map._mapPane) {
+      return;
+    }
+
     const r = this._heatmap._r;
     const size = this.props.leaflet.map.getSize();
 
