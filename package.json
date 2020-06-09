@@ -1,6 +1,6 @@
 {
   "name": "react-leaflet-heatmap-layer",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A custom layer for heatmaps in react-leaflet",
   "main": "lib/HeatmapLayer.js",
   "scripts": {

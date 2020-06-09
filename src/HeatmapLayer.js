@@ -233,7 +233,11 @@ export default withLeaflet(class HeatmapLayer extends MapLayer {
       return;
     }
 
-    this.props.leaflet.map.fitBounds(L.latLngBounds(L.latLng(sw), L.latLng(ne)));
+
+    const maxZoom = this.props.maxZoom === undefined
+                        ? this.props.leaflet.map.getMaxZoom()
+                        : this.getMaxZoom(this.props);
+    this.props.leaflet.map.fitBounds(L.latLngBounds(L.latLng(sw), L.latLng(ne)), { maxZoom });
   }
 
   componentDidUpdate(): void {

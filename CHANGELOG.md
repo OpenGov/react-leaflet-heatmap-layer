@@ -1,3 +1,6 @@
+# 2.0.1 Release
+- Fix `maxZoom` parameter not being used when calling the leaflet `map.fitBounds` function.
+
 # 2.0.0 Release
 - React-leaflet v2.x support. For react-leaflet v1.x please use react-leaflet-heatmep-layer v1.x.
 
